@@ -15,25 +15,31 @@ import matplotlib.pyplot as plt
 #准备数据
 resize = 224
 def load_data():
-    imgs = os.listdir("../train/")
     train_data = np.empty((5000, resize, resize, 3), dtype="int32")
     train_label = np.empty((5000, ), dtype="int32")
     test_data = np.empty((5000, resize, resize, 3), dtype="int32")
     test_label = np.empty((5000, ), dtype="int32")
+    train_ = 'I:\machine_learn_dataset\cat_vs_dog/train/'
     for i in range(5000):
-        if i % 2:
-            train_data[i] = cv2.resize(cv2.imread('../train/' + 'dog.' + str(i) + '.jpg'), (resize, resize))
-            train_label[i] = 1
-        else:
-            train_data[i] = cv2.resize(cv2.imread('../train/' + 'cat.' + str(i) + '.jpg'), (resize, resize))
-            train_label[i] = 0
+        try:
+            if i % 2:
+                train_data[i] = cv2.resize(cv2.imread(train_ + 'dog.' + str(i) + '.jpg'), (resize, resize))
+                train_label[i] = 1
+            else:
+                train_data[i] = cv2.resize(cv2.imread(train_ + 'cat.' + str(i) + '.jpg'), (resize, resize))
+                train_label[i] = 0
+        except:
+            pass
     for i in range(5000, 10000):
-        if i % 2:
-            test_data[i-5000] = cv2.resize(cv2.imread('../train/' + 'dog.' + str(i) + '.jpg'), (resize, resize))
-            test_label[i-5000] = 1
-        else:
-            test_data[i-5000] = cv2.resize(cv2.imread('../train/' + 'cat.' + str(i) + '.jpg'), (resize, resize))
-            test_label[i-5000] = 0
+        try:
+            if i % 2:
+                test_data[i-5000] = cv2.resize(cv2.imread(train_ + 'dog.' + str(i) + '.jpg'), (resize, resize))
+                test_label[i-5000] = 1
+            else:
+                test_data[i-5000] = cv2.resize(cv2.imread(train_ + 'cat.' + str(i) + '.jpg'), (resize, resize))
+                test_label[i-5000] = 0
+        except:
+            pass
     return train_data, train_label, test_data, test_label
 
 
@@ -53,28 +59,28 @@ model.add(Conv2D(filters=96, kernel_size=(11,11),
                  input_shape=(resize,resize,3),
                  activation='relu'))
 model.add(BatchNormalization())
-model.add(MaxPooling2D(pool_size=(3,3), 
-                       strides=(2,2), 
+model.add(MaxPooling2D(pool_size=(3,3),
+                       strides=(2,2),
                        padding='valid'))
 #第二段
-model.add(Conv2D(filters=256, kernel_size=(5,5), 
-                 strides=(1,1), padding='same', 
+model.add(Conv2D(filters=256, kernel_size=(5,5),
+                 strides=(1,1), padding='same',
                  activation='relu'))
 model.add(BatchNormalization())
-model.add(MaxPooling2D(pool_size=(3,3), 
-                       strides=(2,2), 
+model.add(MaxPooling2D(pool_size=(3,3),
+                       strides=(2,2),
                        padding='valid'))
 #第三段
-model.add(Conv2D(filters=384, kernel_size=(3,3), 
-                 strides=(1,1), padding='same', 
+model.add(Conv2D(filters=384, kernel_size=(3,3),
+                 strides=(1,1), padding='same',
                  activation='relu'))
-model.add(Conv2D(filters=384, kernel_size=(3,3), 
-                 strides=(1,1), padding='same', 
+model.add(Conv2D(filters=384, kernel_size=(3,3),
+                 strides=(1,1), padding='same',
                  activation='relu'))
-model.add(Conv2D(filters=256, kernel_size=(3,3), 
-                 strides=(1,1), padding='same', 
+model.add(Conv2D(filters=256, kernel_size=(3,3),
+                 strides=(1,1), padding='same',
                  activation='relu'))
-model.add(MaxPooling2D(pool_size=(3,3), 
+model.add(MaxPooling2D(pool_size=(3,3),
                        strides=(2,2), padding='valid'))
 #第四段
 model.add(Flatten())
@@ -104,17 +110,25 @@ history=model.fit(train_data, train_label,
           validation_split = 0.2,
           shuffle = True)
 
+
+
 #acc plot
-plt.plot(history.history['acc'])
-plt.plot(history.history['val_acc'])
+print(history.history.keys())
+plt.plot(history.history.get('accuracy'))
+plt.plot(history.history.get('val_accuracy'))
 plt.title('model accuracy')
 plt.ylabel('accuracy')
 plt.xlabel('epoch')
 plt.legend(['train', 'test'], loc='upper left')
-
+plt.show()
 #loss plot
 plt.plot(history.history['loss'])
 plt.plot(history.history['val_loss'])
 plt.ylabel('loss')
 plt.xlabel('epoch')
 plt.legend(['train', 'test'], loc='upper left')
+plt.show()
+
+#保存模型
+model.save_weights('alexnet_model_wieghts.h5')
+model.save('alexnet_model_keras.h5')

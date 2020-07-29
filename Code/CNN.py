@@ -8,11 +8,17 @@ from keras.preprocessing.image import img_to_array, load_img
 from keras import layers, models, optimizers
 from keras import backend as K
 from sklearn.model_selection import train_test_split
+import tensorflow as tf
+tf.config.experimental.list_physical_devices('GPU')
+
+np.set_printoptions(precision=4, suppress=True)
+# np.set_printoptions(formatter={'float': '{: 0.4f}'.format})
+# np.set_printoptions(suppress=True, threshold=np.inf)
 
 img_width = 150
 img_height = 150
-TRAIN_DIR = '../train/'
-TEST_DIR = '../test/'
+TRAIN_DIR = 'I:\machine_learn_dataset\cat_vs_dog/train/'
+TEST_DIR = 'I:\machine_learn_dataset\cat_vs_dog/test/'
 train_images_dogs_cats = [TRAIN_DIR+i for i in os.listdir(TRAIN_DIR)] # 使用完整数据集
 test_images_dogs_cats = [TEST_DIR+i for i in os.listdir(TEST_DIR)]
 
@@ -23,29 +29,29 @@ def natural_keys(text):
     return [ atoi(c) for c in re.split('(\d+)', text) ]
 
 train_images_dogs_cats.sort(key=natural_keys)
-train_images_dogs_cats = train_images_dogs_cats[0:3300] + train_images_dogs_cats[9500:13800] 
+train_images_dogs_cats = train_images_dogs_cats[0:3300] + train_images_dogs_cats[9500:13800]
 
 test_images_dogs_cats.sort(key=natural_keys)
 
 
 def prepare_data(list_of_images):
     """
-    Returns two arrays: 
+    Returns two arrays:
         x is an array of resized images
         y is an array of labels
     """
     x = [] # images as arrays
     y = [] # labels
-    
+
     for image in list_of_images:
         x.append(cv2.resize(cv2.imread(image), (img_width,img_height), interpolation=cv2.INTER_CUBIC))
-    
+
     for i in list_of_images:
         if 'dog' in i:
             y.append(1)
         elif 'cat' in i:
             y.append(0)
-            
+
     return x, y
 
 X, Y = prepare_data(train_images_dogs_cats)
@@ -55,7 +61,7 @@ X_train, X_val, Y_train, Y_val = train_test_split(X,Y, test_size=0.2, random_sta
 
 nb_train_samples = len(X_train)
 nb_validation_samples = len(X_val)
-batch_size = 16
+batch_size = 47
 #开始序列模型
 model = models.Sequential()
 #第一层卷积池化
@@ -63,9 +69,9 @@ model.add(layers.Conv2D(32, (3, 3), input_shape=(img_width, img_height, 3)))
 model.add(layers.Activation('relu'))
 model.add(layers.MaxPooling2D(pool_size=(2, 2)))
 #第二层卷积池化
-model.add(layers.Conv2D(32, (3, 3)))
-model.add(layers.Activation('relu'))
-model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+# model.add(layers.Conv2D(32, (3, 3)))
+# model.add(layers.Activation('relu'))
+# model.add(layers.MaxPooling2D(pool_size=(2, 2)))
 #第三层卷积池化
 model.add(layers.Conv2D(64, (3, 3)))
 model.add(layers.Activation('relu'))
@@ -99,34 +105,37 @@ val_datagen = ImageDataGenerator(
 train_generator = train_datagen.flow(np.array(X_train), Y_train, batch_size=batch_size)
 validation_generator = val_datagen.flow(np.array(X_val), Y_val, batch_size=batch_size)
 
-history = model.fit_generator(
-    train_generator, 
+history = model.fit(
+    train_generator,
     steps_per_epoch=nb_train_samples // batch_size,
-    epochs=30,
+    epochs=5,
     validation_data=validation_generator,
     validation_steps=nb_validation_samples // batch_size
 )
 
 #acc plot
-plt.plot(history.history['acc'])
-plt.plot(history.history['val_acc'])
-plt.title('model accuracy')
-plt.ylabel('accuracy')
-plt.xlabel('epoch')
-plt.legend(['train', 'test'], loc='upper left')
-
+try:
+    print(history.history.keys())
+    plt.plot(history.history.get('accuracy'))
+    plt.plot(history.history.get('val_accuracy'))
+    plt.title('model accuracy')
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.show()
+except Exception as e:
+    pass
 #loss plot
 plt.plot(history.history['loss'])
 plt.plot(history.history['val_loss'])
 plt.ylabel('loss')
 plt.xlabel('epoch')
 plt.legend(['train', 'test'], loc='upper left')
+plt.show()
 
-'''
 #保存模型
 model.save_weights('model_wieghts.h5')
 model.save('model_keras.h5')
-'''
 
 '''
 X_test, Y_test = prepare_data(test_images_dogs_cats) #Y_test in this case will be []

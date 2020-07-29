@@ -1,9 +1,15 @@
 # -*- coding: utf-8 -*-
-import numpy as np 
-import pandas as pd 
+import numpy as np
+import pandas as pd
 import os
+import tensorflow as tf
+tf.config.experimental.list_physical_devices('GPU')
 
-filenames = os.listdir("../train/")
+np.set_printoptions(precision=4, suppress=True)
+np.set_printoptions(formatter={'float': '{: 0.4f}'.format})
+
+train_ = "I:\machine_learn_dataset\cat_vs_dog/train/"
+filenames = os.listdir(train_)
 categories = []
 for filename in filenames:
     category = filename.split('.')[0]
@@ -47,8 +53,8 @@ train_datagen = ImageDataGenerator(
 )
 
 train_generator = train_datagen.flow_from_dataframe(
-    train_df, 
-    "../train/", 
+    train_df,
+    train_,
     x_col='filename',
     y_col='category',
     target_size=(150,150),
@@ -58,8 +64,8 @@ train_generator = train_datagen.flow_from_dataframe(
 
 validation_datagen = ImageDataGenerator(rescale=1./255)
 validation_generator = validation_datagen.flow_from_dataframe(
-    validate_df, 
-    "../train/", 
+    validate_df,
+    train_,
     x_col='filename',
     y_col='category',
     target_size=(150,150),
@@ -68,43 +74,51 @@ validation_generator = validation_datagen.flow_from_dataframe(
 )
 
 from keras.applications import VGG16
-from keras import models 
+from keras import models
 from keras import layers
 from keras import optimizers
 #VGG16网络
-conv_base = VGG16(weights='imagenet', 
+conv_base = VGG16(weights='imagenet',
                   include_top=False,
                   input_shape=(150, 150, 3))
 #构建网络
-model = models.Sequential() 
-model.add(conv_base) 
+model = models.Sequential()
+model.add(conv_base)
 model.add(layers.Flatten())
-model.add(layers.Dense(256, activation='relu')) 
+model.add(layers.Dense(256, activation='relu'))
 model.add(layers.Dense(1, activation='sigmoid'))
 
-model.compile(loss='binary_crossentropy', 
-              optimizer=optimizers.RMSprop(lr=1e-5), 
-              metrics=['acc'])
+model.compile(loss='binary_crossentropy',
+              optimizer=optimizers.RMSprop(lr=1e-5),
+              metrics=['accuracy'])
 model.summary();
 
-history = model.fit_generator( 
-    train_generator, 
-    steps_per_epoch=100, 
+history = model.fit(
+    train_generator,
+    steps_per_epoch=100,
     epochs=30,
-    validation_data=validation_generator, 
+    validation_data=validation_generator,
     validation_steps=50)
 
 #acc plot
-plt.plot(history.history['acc'])
-plt.plot(history.history['val_acc'])
+print(history.history.keys())
+plt.plot(history.history['accuracy'])
+plt.plot(history.history['val_accuracy'])
 plt.title('model accuracy')
 plt.ylabel('accuracy')
 plt.xlabel('epoch')
 plt.legend(['train', 'test'], loc='upper left')
-
+plt.show()
 #loss plot
 plt.plot(history.history['loss'])
 plt.plot(history.history['val_loss'])
 plt.ylabel('loss')
 plt.xlabel('epoch')
 plt.legend(['train', 'test'], loc='upper left')
+plt.show()
+
+
+
+#保存模型
+model.save_weights('vgg16_model_wieghts.h5')
+model.save('vgg16_model_keras.h5')

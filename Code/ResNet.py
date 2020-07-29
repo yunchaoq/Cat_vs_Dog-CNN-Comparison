@@ -3,10 +3,16 @@ import os
 
 from keras import layers, optimizers, models
 from keras.applications.resnet50 import ResNet50
-from keras.layers import *    
+from keras.layers import *
 from keras.models import Model
 import matplotlib.pyplot as plt
-import pandas as pd 
+import pandas as pd
+import numpy as np
+import tensorflow as tf
+tf.config.experimental.list_physical_devices('GPU')
+
+np.set_printoptions(precision=4, suppress=True)
+np.set_printoptions(formatter={'float': '{: 0.4f}'.format})
 
 #准备数据
 src_path = r'../'
@@ -23,13 +29,14 @@ model.add(conv_base)
 model.add(layers.Flatten())
 model.add(layers.Dense(1, activation='sigmoid'))
 conv_base.trainable = False
-model.compile(loss='binary_crossentropy', optimizer=optimizers.RMSprop(lr=1e-4), metrics=['acc'])
+model.compile(loss='binary_crossentropy', optimizer=optimizers.RMSprop(lr=1e-4), metrics=['accuracy'])
 model.summary()
 
 from keras.preprocessing.image import ImageDataGenerator
 
 #数据生成
-filenames = os.listdir("../train/")
+train_ = "I:\machine_learn_dataset\cat_vs_dog/train/"
+filenames = os.listdir(train_)
 categories = []
 for filename in filenames:
     category = filename.split('.')[0]
@@ -70,8 +77,8 @@ train_datagen = ImageDataGenerator(
 )
 
 train_generator = train_datagen.flow_from_dataframe(
-    train_df, 
-    "../train/", 
+    train_df,
+    train_,
     x_col='filename',
     y_col='category',
     target_size=(150,150),
@@ -81,8 +88,8 @@ train_generator = train_datagen.flow_from_dataframe(
 
 validation_datagen = ImageDataGenerator(rescale=1./255)
 validation_generator = validation_datagen.flow_from_dataframe(
-    validate_df, 
-    "../train/", 
+    validate_df,
+    train_,
     x_col='filename',
     y_col='category',
     target_size=(150,150),
@@ -90,24 +97,30 @@ validation_generator = validation_datagen.flow_from_dataframe(
     batch_size=15
 )
 
-history = model.fit_generator( 
-    train_generator, 
-    steps_per_epoch=100, 
+history = model.fit_generator(
+    train_generator,
+    steps_per_epoch=100,
     epochs=30,
-    validation_data=validation_generator, 
+    validation_data=validation_generator,
     validation_steps=50)
 
 #acc plot
-plt.plot(history.history['acc'])
-plt.plot(history.history['val_acc'])
+plt.plot(history.history['accuracy'])
+plt.plot(history.history['val_accuracy'])
 plt.title('model accuracy')
 plt.ylabel('accuracy')
 plt.xlabel('epoch')
 plt.legend(['train', 'test'], loc='upper left')
-
+plt.show()
 #loss plot
 plt.plot(history.history['loss'])
 plt.plot(history.history['val_loss'])
 plt.ylabel('loss')
 plt.xlabel('epoch')
 plt.legend(['train', 'test'], loc='upper left')
+plt.show()
+
+
+#保存模型
+model.save_weights('resnet_model_wieghts.h5')
+model.save('resnet_model_keras.h5')

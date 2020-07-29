@@ -45,9 +45,9 @@ def write_gap(MODEL, image_size, lambda_func=None):
     model = Model(base_model.input, GlobalAveragePooling2D()(base_model.output))
 
     gen = ImageDataGenerator()
-    train_generator = gen.flow_from_directory("train2", image_size, shuffle=False, 
+    train_generator = gen.flow_from_directory("train2", image_size, shuffle=False,
                                               batch_size=16)
-    test_generator = gen.flow_from_directory("test2", image_size, shuffle=False, 
+    test_generator = gen.flow_from_directory("test2", image_size, shuffle=False,
                                              batch_size=16, class_mode=None)
 
     train = model.predict_generator(train_generator, train_generator.nb_sample)
@@ -65,6 +65,11 @@ import h5py
 import numpy as np
 from sklearn.utils import shuffle
 import matplotlib.pyplot as plt
+import tensorflow as tf
+tf.config.experimental.list_physical_devices('GPU')
+
+np.set_printoptions(precision=4, suppress=True)
+np.set_printoptions(formatter={'float': '{: 0.4f}'.format})
 np.random.seed(2017)
 
 X_train = []
@@ -99,8 +104,8 @@ model.compile(optimizer='adadelta',
 history=model.fit(X_train, y_train, batch_size=128, nb_epoch=30, validation_split=0.2)
 
 #acc plot
-plt.plot(history.history['acc'])
-plt.plot(history.history['val_acc'])
+plt.plot(history.history['accuracy'])
+plt.plot(history.history['val_accuracy'])
 plt.title('model accuracy')
 plt.ylabel('accuracy')
 plt.xlabel('epoch')
