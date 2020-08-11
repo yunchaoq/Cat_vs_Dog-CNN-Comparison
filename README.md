@@ -304,9 +304,9 @@ Xception的结果已经非常优秀了，但是我还是找到了更厉害的思
 这次做的很简单很简单，不过也算是满足了我个人小小的心愿。以前看到各种模型放在一起比较非常的酷炫，现在我也可以照这样子自己做一个，还是有点成就感的。  
   
 然后Keras.application这个包里，有很多训练好可以直接用网络：
-![image](https://github.com/Mr-strlen/Cat_vs_Dog-CNN-Comparison/blob/master/Images/Keras_application.png)  
+![image](Images/Keras_application.png)  
 这次报告中的VGG16,ResNet,Xception就是直接掉包使用，非常的方便。  
   
 最后贴一下我的运行环境，我的台式机运了回来，有了显卡，所以性能还是很不错的。 
-![image](https://github.com/Mr-strlen/Cat_vs_Dog-CNN-Comparison/blob/master/Images/computer_base.png)  
-![image](https://github.com/Mr-strlen/Cat_vs_Dog-CNN-Comparison/blob/master/Images/GPU_base.png)
+![image](Images/computer_base.png)  
+![image](Images/GPU_base.png)

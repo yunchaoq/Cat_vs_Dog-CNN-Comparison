@@ -15,11 +15,6 @@ np.set_printoptions(precision=4, suppress=True)
 np.set_printoptions(formatter={'float': '{: 0.4f}'.format})
 
 #准备数据
-src_path = r'../'
-dst_path = r'../'
-train_dir = os.path.join(dst_path, 'train')
-validation_dir = os.path.join(dst_path, 'valid')
-test_dir = os.path.join(dst_path, 'test')
 
 class_name = ['cat', 'dog']
 #构建网络
